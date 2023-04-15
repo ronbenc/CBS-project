@@ -115,9 +115,9 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
     closed_list = dict()
     earliest_goal_timestep = 0
     h_value = h_values[start_loc]
-    root = {'loc': start_loc, 'g_val': 0, 'h_val': h_value, 'parent': None}
+    root = {'loc': start_loc, 'time_step': 0, 'g_val': 0, 'h_val': h_value, 'parent': None}
     push_node(open_list, root)
-    closed_list[(root['loc'])] = root
+    closed_list[(root['loc'], root['time_step'])] = root
     while len(open_list) > 0:
         curr = pop_node(open_list)
         #############################
@@ -129,16 +129,17 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
             if my_map[child_loc[0]][child_loc[1]]:
                 continue
             child = {'loc': child_loc,
+                     'time_step' : curr['time_step'] + 1,
                     'g_val': curr['g_val'] + 1,
                     'h_val': h_values[child_loc],
                     'parent': curr}
-            if (child['loc']) in closed_list:
-                existing_node = closed_list[(child['loc'])]
+            if (child['loc'], child['time_step']) in closed_list:
+                existing_node = closed_list[(child['loc'], child['time_step'])]
                 if compare_nodes(child, existing_node):
-                    closed_list[(child['loc'])] = child
+                    closed_list[(child['loc'], child['time_step'])] = child
                     push_node(open_list, child)
             else:
-                closed_list[(child['loc'])] = child
+                closed_list[(child['loc'], child['time_step'])] = child
                 push_node(open_list, child)
 
     return None  # Failed to find solutions
