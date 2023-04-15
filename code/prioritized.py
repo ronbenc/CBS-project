@@ -54,7 +54,14 @@ class PrioritizedPlanningSolver(object):
                     constraints.append({'agent': j, 
                     'loc': (curr_loc, next_loc),
                     'time_step': time_step})
-
+            
+            #Add endless vertex constraints
+            for j in range(self.num_of_agents):
+                    if i == j:
+                        continue
+                    constraints.append({'agent': j, 
+                    'loc': path[-1],
+                    'time_step': -time_step})
             ##############################
 
         self.CPU_time = timer.time() - start_time

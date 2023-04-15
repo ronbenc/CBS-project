@@ -54,16 +54,23 @@ def build_constraint_table(constraints, agent):
     #               for a more efficient constraint violation check in the 
     #               is_constrained function.
     constraint_table = dict()
+    endless_constraint_table = dict() #accessed by loc
     for constraint in constraints:
         if constraint['agent'] == agent:
             constraint_time_step = constraint['time_step']
+            #special check for timeless constraints (other agents at goals)
+            if constraint_time_step < 0:
+                if -constraint_time_step > endless_constraint_table.get(constraint['loc'], 0):
+                    endless_constraint_table[constraint['loc']] = -constraint_time_step
+                continue
+
             if constraint_time_step not in constraint_table:
                 constraint_table[constraint_time_step] = []
-
             constraint_table[constraint_time_step].append(constraint['loc']) 
     
-    print (constraint_table)
-    return constraint_table
+    print(endless_constraint_table)
+    return constraint_table, endless_constraint_table
+
 
 
 def get_location(path, time):
@@ -85,20 +92,22 @@ def get_path(goal_node):
     return path
 
 
-def is_constrained(curr_loc, next_loc, next_time, constraint_table):
+def is_constrained(curr_loc, next_loc, next_time, constraint_table, endless_constraint_table):
     ##############################
     # Task 1.2/1.3: Check if a move from curr_loc to next_loc at time step next_time violates
     #               any given constraint. For efficiency the constraints are indexed in a constraint_table
     #               by time step, see build_constraint_table.
-    #print(next_time, (curr_loc, next_loc))
 
     if next_loc in constraint_table.get(next_time, []):
         return True
     
     if (next_loc, curr_loc) in constraint_table.get(next_time, []):
-        print("True")
         return True
     
+    if next_time >= endless_constraint_table.get(next_loc, float('inf')):
+        return True
+    
+
     return False
 
 
@@ -132,7 +141,7 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
     closed_list = dict()
     earliest_goal_timestep = 0
     h_value = h_values[start_loc]
-    constraints_table = build_constraint_table(constraints, agent)
+    constraints_table, endless_constraint_table = build_constraint_table(constraints, agent)
     last_constrained_time_step = max(constraints_table, default=0)
     print(last_constrained_time_step)
     root = {'loc': start_loc, 'time_step': 0, 'g_val': 0, 'h_val': h_value, 'parent': None}
@@ -148,7 +157,7 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
             child_loc = move(curr['loc'], dir)
             if my_map[child_loc[0]][child_loc[1]]:
                 continue
-            if is_constrained(curr['loc'], child_loc, curr['time_step'] + 1, constraints_table):
+            if is_constrained(curr['loc'], child_loc, curr['time_step'] + 1, constraints_table, endless_constraint_table):
                 continue #prune
             child = {'loc': child_loc,
                     'time_step' : curr['time_step'] + 1,
