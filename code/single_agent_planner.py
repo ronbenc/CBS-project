@@ -144,7 +144,7 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints, path_lengt
     constraints_table, endless_constraint_table = build_constraint_table(constraints, agent)
     last_constrained_time_step = max(constraints_table, default=0)
     print(last_constrained_time_step)
-    root = {'loc': start_loc, 'time_step': 0, 'g_val': 0, 'h_val': h_value, 'parent': None, 'path_length': 0}
+    root = {'loc': start_loc, 'time_step': 0, 'g_val': 0, 'h_val': h_value, 'parent': None}
     push_node(open_list, root)
     closed_list[(root['loc'], root['time_step'])] = root
     while len(open_list) > 0:
@@ -154,7 +154,7 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints, path_lengt
         if curr['loc'] == goal_loc and curr['time_step'] > last_constrained_time_step:
             return get_path(curr)
         
-        if path_length_bound and curr['path_length'] > path_length_bound:
+        if path_length_bound and curr['g_val'] > path_length_bound:
             continue
         
         for dir in range(5):
@@ -168,8 +168,7 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints, path_lengt
                     'time_step' : curr['time_step'] + 1,
                     'g_val': curr['g_val'] + 1,
                     'h_val': h_values[child_loc],
-                    'parent': curr,
-                    'path_length': curr['path_length'] + 1}
+                    'parent': curr}
             if (child['loc'], child['time_step']) in closed_list:
                 existing_node = closed_list[(child['loc'], child['time_step'])]
                 if compare_nodes(child, existing_node):
