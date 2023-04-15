@@ -1,7 +1,7 @@
 import heapq
 
 def move(loc, dir):
-    directions = [(0, -1), (1, 0), (0, 1), (-1, 0)]
+    directions = [(0, -1), (1, 0), (0, 1), (-1, 0), (0, 0)]
     return loc[0] + directions[dir][0], loc[1] + directions[dir][1]
 
 
@@ -53,8 +53,17 @@ def build_constraint_table(constraints, agent):
     #               the given agent for each time step. The table can be used
     #               for a more efficient constraint violation check in the 
     #               is_constrained function.
+    constraint_table = dict()
+    for constraint in constraints:
+        if constraint['agent'] == agent:
+            constraint_time_step = constraint['time_step']
+            if constraint_time_step not in constraint_table:
+                constraint_table[constraint_time_step] = []
 
-    pass
+            constraint_table[constraint_time_step].append(constraint['loc']) 
+    
+    print (constraint_table)
+    return constraint_table
 
 
 def get_location(path, time):
@@ -82,7 +91,10 @@ def is_constrained(curr_loc, next_loc, next_time, constraint_table):
     #               any given constraint. For efficiency the constraints are indexed in a constraint_table
     #               by time step, see build_constraint_table.
 
-    pass
+    if next_loc in constraint_table.get(next_time, []):
+        return True
+    
+    return False
 
 
 def push_node(open_list, node):
@@ -115,6 +127,7 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
     closed_list = dict()
     earliest_goal_timestep = 0
     h_value = h_values[start_loc]
+    constraints_table = build_constraint_table(constraints, agent)
     root = {'loc': start_loc, 'time_step': 0, 'g_val': 0, 'h_val': h_value, 'parent': None}
     push_node(open_list, root)
     closed_list[(root['loc'], root['time_step'])] = root
@@ -124,12 +137,15 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
         # Task 1.4: Adjust the goal test condition to handle goal constraints
         if curr['loc'] == goal_loc:
             return get_path(curr)
-        for dir in range(4):
+        for dir in range(5):
             child_loc = move(curr['loc'], dir)
             if my_map[child_loc[0]][child_loc[1]]:
                 continue
+            if is_constrained(curr['loc'], child_loc, curr['time_step'] + 1, constraints_table):
+                print(curr['loc'], child_loc, curr['time_step'] + 1)
+                continue #prune
             child = {'loc': child_loc,
-                     'time_step' : curr['time_step'] + 1,
+                    'time_step' : curr['time_step'] + 1,
                     'g_val': curr['g_val'] + 1,
                     'h_val': h_values[child_loc],
                     'parent': curr}
