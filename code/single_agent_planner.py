@@ -94,6 +94,9 @@ def is_constrained(curr_loc, next_loc, next_time, constraint_table):
     if next_loc in constraint_table.get(next_time, []):
         return True
     
+    if (curr_loc, next_loc) in constraint_table.get(next_time, []):
+        return True
+    
     return False
 
 
