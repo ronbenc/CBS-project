@@ -90,11 +90,13 @@ def is_constrained(curr_loc, next_loc, next_time, constraint_table):
     # Task 1.2/1.3: Check if a move from curr_loc to next_loc at time step next_time violates
     #               any given constraint. For efficiency the constraints are indexed in a constraint_table
     #               by time step, see build_constraint_table.
+    #print(next_time, (curr_loc, next_loc))
 
     if next_loc in constraint_table.get(next_time, []):
         return True
     
-    if (curr_loc, next_loc) in constraint_table.get(next_time, []):
+    if (next_loc, curr_loc) in constraint_table.get(next_time, []):
+        print("True")
         return True
     
     return False
