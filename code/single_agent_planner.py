@@ -125,7 +125,7 @@ def compare_nodes(n1, n2):
     return n1['g_val'] + n1['h_val'] < n2['g_val'] + n2['h_val']
 
 
-def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
+def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints, path_length_bound = None):
     """ my_map      - binary obstacle map
         start_loc   - start position
         goal_loc    - goal position
@@ -144,7 +144,7 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
     constraints_table, endless_constraint_table = build_constraint_table(constraints, agent)
     last_constrained_time_step = max(constraints_table, default=0)
     print(last_constrained_time_step)
-    root = {'loc': start_loc, 'time_step': 0, 'g_val': 0, 'h_val': h_value, 'parent': None}
+    root = {'loc': start_loc, 'time_step': 0, 'g_val': 0, 'h_val': h_value, 'parent': None, 'path_length': 0}
     push_node(open_list, root)
     closed_list[(root['loc'], root['time_step'])] = root
     while len(open_list) > 0:
@@ -153,17 +153,23 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
         # Task 1.4: Adjust the goal test condition to handle goal constraints
         if curr['loc'] == goal_loc and curr['time_step'] > last_constrained_time_step:
             return get_path(curr)
+        
+        if path_length_bound and curr['path_length'] > path_length_bound:
+            continue
+        
         for dir in range(5):
             child_loc = move(curr['loc'], dir)
             if my_map[child_loc[0]][child_loc[1]]:
                 continue
             if is_constrained(curr['loc'], child_loc, curr['time_step'] + 1, constraints_table, endless_constraint_table):
                 continue #prune
+            
             child = {'loc': child_loc,
                     'time_step' : curr['time_step'] + 1,
                     'g_val': curr['g_val'] + 1,
                     'h_val': h_values[child_loc],
-                    'parent': curr}
+                    'parent': curr,
+                    'path_length': curr['path_length'] + 1}
             if (child['loc'], child['time_step']) in closed_list:
                 existing_node = closed_list[(child['loc'], child['time_step'])]
                 if compare_nodes(child, existing_node):

@@ -26,16 +26,24 @@ class PrioritizedPlanningSolver(object):
     def find_solution(self):
         """ Finds paths for all agents from their start locations to their goal locations."""
 
+        print(self.my_map)
         start_time = timer.time()
         result = []
         constraints = []
 
+        longest_path_so_far = 0
+        map_size = len(self.my_map)*len(self.my_map[0])
+
         for i in range(self.num_of_agents):  # Find path for each agent
+            path_length_bound =  map_size + longest_path_so_far
+
             path = a_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i],
-                          i, constraints)
+                          i, constraints, path_length_bound)
             if path is None:
                 raise BaseException('No solutions')
             result.append(path)
+
+            longest_path_so_far = max(longest_path_so_far, len(path))
 
             ##############################
             # Task 2: Add constraints here
