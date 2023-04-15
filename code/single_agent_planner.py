@@ -131,6 +131,8 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
     earliest_goal_timestep = 0
     h_value = h_values[start_loc]
     constraints_table = build_constraint_table(constraints, agent)
+    last_constrained_time_step = max(constraints_table, default=0)
+    print(last_constrained_time_step)
     root = {'loc': start_loc, 'time_step': 0, 'g_val': 0, 'h_val': h_value, 'parent': None}
     push_node(open_list, root)
     closed_list[(root['loc'], root['time_step'])] = root
@@ -138,14 +140,13 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
         curr = pop_node(open_list)
         #############################
         # Task 1.4: Adjust the goal test condition to handle goal constraints
-        if curr['loc'] == goal_loc:
+        if curr['loc'] == goal_loc and curr['time_step'] > last_constrained_time_step:
             return get_path(curr)
         for dir in range(5):
             child_loc = move(curr['loc'], dir)
             if my_map[child_loc[0]][child_loc[1]]:
                 continue
             if is_constrained(curr['loc'], child_loc, curr['time_step'] + 1, constraints_table):
-                print(curr['loc'], child_loc, curr['time_step'] + 1)
                 continue #prune
             child = {'loc': child_loc,
                     'time_step' : curr['time_step'] + 1,
@@ -162,3 +163,4 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
                 push_node(open_list, child)
 
     return None  # Failed to find solutions
+
